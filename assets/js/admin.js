@@ -43,6 +43,13 @@
       { title: "Catálogo", list: "products", label: function (x) { return x.name || "Producto nuevo"; }, blank: function () { return { id: "p" + Date.now().toString(36), name: "", category: "", price: 0, oldPrice: 0, badge: "", image: "" }; },
         fields: [T.text("name", "Nombre"), T.text("category", "Categoría"), T.num("price", "Precio (COP)"), T.num("oldPrice", "Precio anterior (0 = sin tachado)"), T.text("badge", "Etiqueta (Oferta, Nuevo…)"), T.img("image", "Foto", "Horizontal 4:3, mínimo 800×600 px.")] }
     ] },
+    { id: "services", name: "Servicios adicionales", hint: "Servicios opcionales con precio visible que el cliente puede sumar en el carrito.", groups: [
+      { note: "Cobra solo servicios reales y opcionales, con el precio a la vista. No cobres recargos por pagar con Addi o Sistecrédito: tu ganancia por producto va en el precio (usa la Calculadora de ganancia)." },
+      { title: "Encabezado", fields: [T.text("servicesTitle", "Título en el carrito")] },
+      { title: "Servicios", list: "services", label: function (x) { return x.name || "Servicio"; }, blank: function () { return { id: "s" + Date.now().toString(36), name: "", desc: "", price: 0 }; },
+        fields: [T.text("name", "Nombre"), T.num("price", "Precio (COP)"), T.area("desc", "Descripción corta")] }
+    ] },
+    { id: "calc", name: "Calculadora de ganancia", hint: "Solo para ti: calcula el precio de venta que deja tu margen después de la comisión de la plataforma. No se publica.", custom: calcPanel },
     { id: "steps", name: "Cómo funciona", hint: "Pasos del proceso, en orden.", groups: [
       { title: "Pasos", list: "steps", label: function (x) { return x.title || "Paso"; }, blank: { title: "", text: "" }, fields: [T.text("title", "Título"), T.area("text", "Descripción")] }
     ] },
@@ -189,6 +196,7 @@
     var tab = TABS.filter(function (t) { return t.id === current; })[0];
     $("tabTitle").textContent = tab.name; $("tabHint").textContent = tab.hint;
     var panel = $("panel"); panel.innerHTML = "";
+    if (tab.custom) { tab.custom(panel); return; }
     tab.groups.forEach(function (g) {
       if (g.note) { panel.appendChild(h("div", { class: "note", text: g.note })); return; }
       var card = h("section", { class: "card" }, [h("h3", { text: g.title })]);
@@ -232,6 +240,48 @@
     }
     draw();
     return box;
+  }
+
+  /* ---------- calculadora de ganancia (no se guarda ni se publica) ---------- */
+  var calc = { cost: 600000, extra: 15000, fee: 8, margin: 25 };
+  function calcPanel(panel) {
+    var money = new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 });
+    var out = h("div", { class: "calc-out" });
+    function compute() {
+      var d = (Number(C.simulator && C.simulator.addiDiscount) || 0) / 100;
+      var f = calc.fee / 100, m = calc.margin / 100;
+      var base = calc.cost + calc.extra;
+      if (f + m >= 1 || base <= 0) { out.innerHTML = '<p class="err">Revisa los valores: la comisión más el margen deben sumar menos de 100%.</p>'; return; }
+      var raw = base / ((1 - d) * (1 - f - m));
+      var price = Math.ceil((raw + 100) / 1000) * 1000 - 100; // terminación en 900
+      var clientAddi = price * (1 - d);
+      var received = clientAddi * (1 - f);
+      var profit = received - base;
+      var rows = [
+        ["Precio de venta sugerido", money.format(price), "big"],
+        ["Cliente paga con Addi (con " + Math.round(d * 100) + "% de descuento)", money.format(clientAddi)],
+        ["Comisión de la plataforma (" + calc.fee + "%)", "− " + money.format(clientAddi * f)],
+        ["Te consignan", money.format(received)],
+        ["Costo del producto + otros costos", "− " + money.format(base)],
+        ["Tu ganancia neta por unidad", money.format(profit), "ok"],
+        ["Margen real sobre lo que paga el cliente", (profit / clientAddi * 100).toFixed(1) + "%"]
+      ];
+      out.innerHTML = "";
+      rows.forEach(function (rw) { out.appendChild(h("div", { class: "calc-row " + (rw[2] || "") }, [h("span", { text: rw[0] }), h("b", { text: rw[1] })])); });
+    }
+    function inp(k, label, hint) {
+      var id = "calc-" + k;
+      return h("div", { class: "f" }, [h("label", { for: id, text: label }), h("input", { id: id, type: "number", step: "any", value: calc[k], on: { input: function (e) { calc[k] = Number(e.target.value) || 0; compute(); } } }), hint ? h("small", { text: hint }) : null]);
+    }
+    panel.appendChild(h("section", { class: "card" }, [h("h3", { text: "Datos del producto" }), h("div", { class: "grid2" }, [
+      inp("cost", "Costo del producto (COP)", "Lo que te cuesta a ti, con IVA si eres responsable de IVA."),
+      inp("extra", "Otros costos por unidad (COP)", "Envío que asumes, empaque, publicidad por venta."),
+      inp("fee", "Comisión que te cobra la plataforma (%)", "Usa el porcentaje exacto de tu contrato de aliado Addi o Sistecrédito."),
+      inp("margin", "Margen que quieres ganar (%)", "Porcentaje de ganancia sobre lo que paga el cliente.")
+    ])]));
+    panel.appendChild(h("section", { class: "card" }, [h("h3", { text: "Resultado" }), out]));
+    panel.appendChild(h("div", { class: "note", text: "El descuento Addi se toma del Simulador. Copia el precio sugerido en el producto (pestaña Productos) y guarda. Cobra el mismo precio sin importar el medio de pago: los convenios de aliado no suelen permitir recargos por pagar con la plataforma, y el precio anunciado debe ser el total (Ley 1480 de 2011)." }));
+    compute();
   }
 
   /* ---------- acciones ---------- */

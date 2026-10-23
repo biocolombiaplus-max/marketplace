@@ -80,6 +80,12 @@ window.DEFAULT_CONTENT = {
     { id: "p5", name: "Freidora de aire 5 L", category: "Hogar", price: 329000, oldPrice: 389000, badge: "", image: "" },
     { id: "p6", name: "Reloj inteligente", category: "Accesorios", price: 249000, oldPrice: 0, badge: "Nuevo", image: "" }
   ],
+  servicesTitle: "Mejora tu compra (opcional)",
+  services: [
+    { id: "s1", name: "Envío express 24 h", desc: "Ciudades principales. Llega al día siguiente hábil.", price: 15000 },
+    { id: "s2", name: "Entrega lista para usar", desc: "Configuramos tu celular o portátil y pasamos tus datos.", price: 35000 },
+    { id: "s3", name: "Garantía extendida 6 meses", desc: "Seis meses más de cobertura después de la del fabricante.", price: 59000 }
+  ],
   testimonials: [],
   faq: [
     { q: "¿Necesito tener cupo aprobado antes de pedir?", a: "No es obligatorio. Si no tienes cupo, la plataforma lo evalúa al momento del pago con tu cédula y celular. Si ya lo tienes, el proceso es todavía más rápido." },

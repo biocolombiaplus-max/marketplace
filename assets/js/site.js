@@ -3,6 +3,7 @@
 
   var C; // contenido activo
   var cart = [];
+  var chosen = []; // servicios opcionales marcados
   var CART_KEY = "cupoplus_cart";
 
   /* ---------- utilidades ---------- */
@@ -195,8 +196,8 @@
       '<div class="drawer-backdrop" id="backdrop"></div>' +
       '<aside class="drawer" id="drawer" aria-label="Carrito" aria-hidden="true"><div class="drawer-head"><h3>Tu pedido</h3><button class="icon-btn" type="button" id="closeCart" aria-label="Cerrar carrito">×</button></div>' +
       '<div class="drawer-items" id="cartItems"></div>' +
-      '<div class="drawer-foot"><span class="lbl" style="font-weight:700;font-size:.9rem">¿Con qué vas a pagar?</span><div class="pay-choice"><label><input type="radio" name="cartPay" value="Addi" checked><span>Addi</span></label><label><input type="radio" name="cartPay" value="Sistecrédito"><span>Sistecrédito</span></label></div>' +
-      '<div class="total" id="cartDescRow" style="font-size:.95rem"><span>Descuento exclusivo Addi</span><b class="num neg" id="cartDesc" style="font-size:1rem"></b></div><div class="total"><span>Total</span><b class="num" id="cartTotal">$0</b></div>' +
+      '<div class="drawer-foot">' + servicesHtml() + '<span class="lbl" style="font-weight:700;font-size:.9rem">¿Con qué vas a pagar?</span><div class="pay-choice"><label><input type="radio" name="cartPay" value="Addi" checked><span>Addi</span></label><label><input type="radio" name="cartPay" value="Sistecrédito"><span>Sistecrédito</span></label></div>' +
+      '<div class="total" id="cartSrvRow" style="font-size:.95rem"><span>Servicios adicionales</span><b class="num" id="cartSrv" style="font-size:1rem"></b></div><div class="total" id="cartDescRow" style="font-size:.95rem"><span>Descuento exclusivo Addi</span><b class="num neg" id="cartDesc" style="font-size:1rem"></b></div><div class="total"><span>Total</span><b class="num" id="cartTotal">$0</b></div>' +
       '<a class="btn btn-fire btn-block" id="checkout" href="#" target="_blank" rel="noopener">' + icon("wa") + "Enviar pedido por WhatsApp</a>" +
       "<small>Te respondemos con el enlace oficial de pago. Sin compromiso.</small></div></aside>" +
       '<div class="toast" id="toast" role="status"></div>';
@@ -254,6 +255,16 @@
     document.getElementById("simCta").href = wa(msg);
   }
 
+  /* ---------- servicios opcionales ---------- */
+  function services() { return (C.services || []).filter(function (x) { return x && x.name; }); }
+  function servicesHtml() {
+    var list = services();
+    if (!list.length) return "";
+    return '<fieldset class="services"><legend>' + esc(C.servicesTitle || "Servicios opcionales") + "</legend>" + list.map(function (x) {
+      return '<label class="srv"><input type="checkbox" value="' + esc(x.id) + '"><span><b>' + esc(x.name) + '</b><small>' + esc(x.desc) + '</small></span><em class="num">+ ' + money(x.price) + "</em></label>";
+    }).join("") + "</fieldset>";
+  }
+
   /* ---------- carrito ---------- */
   function updateCart() {
     var items = document.getElementById("cartItems");
@@ -277,9 +288,14 @@
     document.getElementById("cartDescRow").hidden = !desc;
     document.getElementById("cartDesc").textContent = "− " + money(desc);
     total -= desc;
+    var srv = cart.length ? services().filter(function (x) { return chosen.indexOf(x.id) > -1; }) : [];
+    var srvTotal = srv.reduce(function (a, x) { return a + (Number(x.price) || 0); }, 0);
+    document.getElementById("cartSrvRow").hidden = !srvTotal;
+    document.getElementById("cartSrv").textContent = "+ " + money(srvTotal);
+    total += srvTotal;
     document.getElementById("cartTotal").textContent = money(total);
     var lines = cart.map(function (l) { var p = find(l.id); return p ? "• " + l.qty + " x " + p.name + " — " + money(p.price * l.qty) : ""; }).filter(Boolean);
-    var msg = "Hola 👋 Quiero hacer este pedido para pagar con " + plat + ":\n\n" + lines.join("\n") + (desc ? "\n\nDescuento Addi (" + addiPct() + "%): − " + money(desc) : "") + "\n\nTotal: " + money(total) + "\n\n¿Me confirman disponibilidad y el enlace de pago?";
+    var msg = "Hola 👋 Quiero hacer este pedido para pagar con " + plat + ":\n\n" + lines.join("\n") + (srv.length ? "\n\nServicios adicionales:\n" + srv.map(function (x) { return "• " + x.name + " — " + money(x.price); }).join("\n") : "") + (desc ? "\n\nDescuento Addi (" + addiPct() + "%): − " + money(desc) : "") + "\n\nTotal: " + money(total) + "\n\n¿Me confirman disponibilidad y el enlace de pago?";
     var co = document.getElementById("checkout");
     co.href = cart.length ? wa(msg) : "#productos";
     co.toggleAttribute("aria-disabled", !cart.length);
@@ -319,6 +335,12 @@
     });
     document.querySelectorAll("input[name=simPay]").forEach(function (i) { i.addEventListener("change", updateSim); });
     document.querySelectorAll("input[name=cartPay]").forEach(function (i) { i.addEventListener("change", updateCart); });
+    document.querySelectorAll(".services input").forEach(function (i) {
+      i.addEventListener("change", function () {
+        chosen = Array.prototype.map.call(document.querySelectorAll(".services input:checked"), function (x) { return x.value; });
+        updateCart();
+      });
+    });
 
     var cats = document.getElementById("cats");
     if (cats) cats.addEventListener("click", function (e) {
