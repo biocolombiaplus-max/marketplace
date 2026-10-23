@@ -28,6 +28,8 @@
     if (!r) return monto / n;
     return monto * r / (1 - Math.pow(1 + r, -n));
   }
+  function addiPct() { return Math.max(0, Math.min(90, Number(C.simulator.addiDiscount) || 0)); }
+  function withAddi(n) { return n * (1 - addiPct() / 100); }
   function store(get, val) {
     try {
       if (get) return JSON.parse(localStorage.getItem(CART_KEY) || "[]");
@@ -136,6 +138,12 @@
       '<a class="btn btn-fire" href="' + esc(wa(p.message)) + '" target="_blank" rel="noopener">' + icon("wa") + "<span>Hablar con un asesor</span></a></div></div></header>" +
 
       '<main id="top">' +
+      '<section class="promo promo-lead" id="cupo"><div class="wrap"><div class="promo-card"><div class="promo-inner"><div class="promo-copy">' +
+      '<span class="promo-kicker">● ' + esc(p.kicker) + "</span><h2>" + esc(p.title) + (p.highlight ? " <em>" + esc(p.highlight) + "</em>" : "") + "</h2><p>" + esc(p.subtitle) + "</p>" +
+      '<ul class="promo-points">' + (p.points || []).map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>" +
+      '<div><a class="btn btn-fire btn-xl" href="' + esc(wa(p.message)) + '" target="_blank" rel="noopener">' + icon("wa") + esc(p.cta) + "</a></div></div>" +
+      '<div class="promo-visual">' + promoVisual + "</div></div></div></div></section>" +
+
       '<section class="hero"><div class="wrap"><div class="hero-copy">' +
       '<span class="pill reveal"><i></i>' + esc(h.eyebrow) + "</span>" +
       '<h1 class="reveal">' + esc(h.title) + "<em>" + esc(h.highlight) + "</em></h1>" +
@@ -147,15 +155,9 @@
       '<div class="quote-card"><small>Cuota de referencia desde</small><strong class="num">' + money(cuota(sampleAmount, maxPlazo, s.monthlyRate)) + " <span>/mes</span></strong>" +
       '<span style="color:var(--muted);font-size:.85rem">' + esc(cheapest ? cheapest.name : "Tu compra") + " · " + esc(maxPlazo) + ' cuotas</span><div class="bar"><i></i></div></div></div></div></section>' +
 
-      '<section class="promo" id="cupo"><div class="wrap"><div class="promo-card"><div class="promo-inner"><div class="promo-copy">' +
-      '<span class="promo-kicker">● ' + esc(p.kicker) + "</span><h2>" + esc(p.title) + "</h2><p>" + esc(p.subtitle) + "</p>" +
-      '<ul class="promo-points">' + (p.points || []).map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>" +
-      '<div><a class="btn btn-fire btn-xl" href="' + esc(wa(p.message)) + '" target="_blank" rel="noopener">' + icon("wa") + esc(p.cta) + "</a></div></div>" +
-      '<div class="promo-visual">' + promoVisual + "</div></div></div></div></section>" +
-
       '<section class="section sim" id="simulador"><div class="wrap"><div class="section-head"><span class="eyebrow">Simulador</span><h2>' + esc(s.title) + "</h2><p>" + esc(s.subtitle) + "</p></div>" +
       '<div class="sim-grid"><div class="sim-panel">' +
-      '<div class="field"><div class="field-top"><label for="simRange">Valor de tu compra</label><output class="amount-out num" id="simOut" for="simRange"></output></div>' +
+      '<div class="field"><div class="field-top"><label for="simRange">¿Cuánto cupo quieres usar?</label><output class="amount-out num" id="simOut" for="simRange"></output></div>' +
       '<input type="range" id="simRange" min="' + esc(s.min) + '" max="' + esc(s.max) + '" step="' + esc(s.step) + '" value="' + esc(s.initial) + '">' +
       '<div class="range-scale num"><span>' + money(s.min) + "</span><span>" + money(s.max) + "</span></div>" +
       '<input class="amount-input num" id="simInput" inputmode="numeric" aria-label="Escribe el valor exacto" placeholder="Escribe un valor exacto"></div>' +
@@ -163,7 +165,7 @@
       '<div class="field"><span class="lbl">Plataforma</span><div class="pay-choice"><label><input type="radio" name="simPay" value="Addi" checked><span>Addi</span></label><label><input type="radio" name="simPay" value="Sistecrédito"><span>Sistecrédito</span></label></div></div>' +
       "</div>" +
       '<div class="sim-result" aria-live="polite"><span class="eyebrow">Tu cuota de referencia</span><div class="big-quote num" id="simCuota"></div>' +
-      '<div class="breakdown num"><div><span>Valor de la compra</span><b id="bdMonto"></b></div><div><span>Plazo</span><b id="bdPlazo"></b></div><div><span>Total aproximado</span><b id="bdTotal"></b></div></div>' +
+      '<div class="save-pill" id="simSave"></div><div class="breakdown num"><div><span>Valor de los productos</span><b id="bdMonto"></b></div><div id="bdDescRow"><span id="bdDescLbl"></span><b id="bdDesc" class="neg"></b></div><div><span>Usas de tu cupo</span><b id="bdUso"></b></div><div><span>Plazo</span><b id="bdPlazo"></b></div><div><span>Total aproximado en cuotas</span><b id="bdTotal"></b></div></div>' +
       '<a class="btn btn-fire btn-xl btn-block" id="simCta" href="#" target="_blank" rel="noopener">' + icon("wa") + esc(s.cta) + "</a>" +
       '<p class="sim-note">' + esc(s.note) + "</p>" + (s.image ? img(s.image, "") : "") + "</div></div></div></section>" +
 
@@ -194,7 +196,7 @@
       '<aside class="drawer" id="drawer" aria-label="Carrito" aria-hidden="true"><div class="drawer-head"><h3>Tu pedido</h3><button class="icon-btn" type="button" id="closeCart" aria-label="Cerrar carrito">×</button></div>' +
       '<div class="drawer-items" id="cartItems"></div>' +
       '<div class="drawer-foot"><span class="lbl" style="font-weight:700;font-size:.9rem">¿Con qué vas a pagar?</span><div class="pay-choice"><label><input type="radio" name="cartPay" value="Addi" checked><span>Addi</span></label><label><input type="radio" name="cartPay" value="Sistecrédito"><span>Sistecrédito</span></label></div>' +
-      '<div class="total"><span>Total</span><b class="num" id="cartTotal">$0</b></div>' +
+      '<div class="total" id="cartDescRow" style="font-size:.95rem"><span>Descuento exclusivo Addi</span><b class="num neg" id="cartDesc" style="font-size:1rem"></b></div><div class="total"><span>Total</span><b class="num" id="cartTotal">$0</b></div>' +
       '<a class="btn btn-fire btn-block" id="checkout" href="#" target="_blank" rel="noopener">' + icon("wa") + "Enviar pedido por WhatsApp</a>" +
       "<small>Te respondemos con el enlace oficial de pago. Sin compromiso.</small></div></aside>" +
       '<div class="toast" id="toast" role="status"></div>';
@@ -214,7 +216,8 @@
       return '<article class="product"><div class="product-media">' + (x.image ? img(x.image, x.name) : '<span class="ph">' + ICON.box + "</span>") +
         (x.badge ? '<span class="badge">' + esc(x.badge) + "</span>" : "") + '</div><div class="product-body"><span class="product-cat">' + esc(x.category) + "</span><h3>" + esc(x.name) + "</h3>" +
         '<div class="price-row num"><span class="price">' + money(x.price) + "</span>" + (x.oldPrice > x.price ? '<span class="old">' + money(x.oldPrice) + "</span>" : "") + "</div>" +
-        '<span class="from num">Desde ' + money(cuota(x.price, maxPlazo, s.monthlyRate)) + "/mes · " + esc(maxPlazo) + " cuotas*</span></div>" +
+        (addiPct() ? '<span class="addi-price num">Con Addi: <b>' + money(withAddi(x.price)) + "</b> (−" + addiPct() + "%)</span>" : "") +
+        '<span class="from num">Desde ' + money(cuota(withAddi(x.price), maxPlazo, s.monthlyRate)) + "/mes · " + esc(maxPlazo) + " cuotas*</span></div>" +
         '<div class="product-foot"><button type="button" class="btn ' + (inCart ? "btn-fire added" : "btn-fire") + '" data-add="' + esc(x.id) + '">' + (inCart ? "✓ En tu pedido · agregar otro" : "Agregar al pedido") + "</button></div></article>";
     }).join("");
   }
@@ -229,16 +232,25 @@
       var pressed = document.querySelector("#plazos [aria-pressed=true]");
       plazo = pressed ? Number(pressed.dataset.plazo) : s.plazos[0];
     }
-    var c = cuota(monto, plazo, s.monthlyRate);
     var plat = (document.querySelector("input[name=simPay]:checked") || {}).value || "Addi";
+    var pct = plat === "Addi" ? addiPct() : 0;
+    var ahorro = monto * pct / 100, uso = monto - ahorro;
+    var c = cuota(uso, plazo, s.monthlyRate);
     document.getElementById("simOut").textContent = money(monto);
     document.getElementById("simCuota").innerHTML = money(c) + " <small>/ mes</small>";
     document.getElementById("bdMonto").textContent = money(monto);
+    document.getElementById("bdDescRow").hidden = !pct;
+    document.getElementById("bdDescLbl").textContent = "Descuento exclusivo Addi (" + pct + "%)";
+    document.getElementById("bdDesc").textContent = "− " + money(ahorro);
+    document.getElementById("bdUso").textContent = money(uso);
+    var sv = document.getElementById("simSave");
+    sv.hidden = !pct;
+    sv.textContent = "Ahorras " + money(ahorro) + " pagando con Addi";
     document.getElementById("bdPlazo").textContent = plazo + (plazo == 1 ? " cuota" : " cuotas");
     document.getElementById("bdTotal").textContent = money(c * plazo);
-    var pct = (monto - s.min) / (s.max - s.min) * 100;
-    r.style.background = "linear-gradient(90deg, var(--fire) " + pct + "%, rgba(255,255,255,.1) " + pct + "%)";
-    var msg = String(s.message || "").replace("{monto}", money(monto)).replace("{plazo}", plazo).replace("{cuota}", money(c)) + " Plataforma: " + plat + ".";
+    var fill = (monto - s.min) / (s.max - s.min) * 100;
+    r.style.background = "linear-gradient(90deg, var(--fire) " + fill + "%, rgba(255,255,255,.1) " + fill + "%)";
+    var msg = String(s.message || "").replace("{monto}", money(monto)).replace("{plazo}", plazo).replace("{cuota}", money(c)).replace("{ahorro}", money(ahorro)) + " Plataforma: " + plat + ".";
     document.getElementById("simCta").href = wa(msg);
   }
 
@@ -260,10 +272,14 @@
           '<button type="button" class="rm" data-rm="' + esc(p.id) + '">Quitar</button></div>';
       }).join("");
     }
-    document.getElementById("cartTotal").textContent = money(total);
     var plat = (document.querySelector("input[name=cartPay]:checked") || {}).value || "Addi";
+    var desc = plat === "Addi" && cart.length ? total * addiPct() / 100 : 0;
+    document.getElementById("cartDescRow").hidden = !desc;
+    document.getElementById("cartDesc").textContent = "− " + money(desc);
+    total -= desc;
+    document.getElementById("cartTotal").textContent = money(total);
     var lines = cart.map(function (l) { var p = find(l.id); return p ? "• " + l.qty + " x " + p.name + " — " + money(p.price * l.qty) : ""; }).filter(Boolean);
-    var msg = "Hola 👋 Quiero hacer este pedido para pagar con " + plat + ":\n\n" + lines.join("\n") + "\n\nTotal: " + money(total) + "\n\n¿Me confirman disponibilidad y el enlace de pago?";
+    var msg = "Hola 👋 Quiero hacer este pedido para pagar con " + plat + ":\n\n" + lines.join("\n") + (desc ? "\n\nDescuento Addi (" + addiPct() + "%): − " + money(desc) : "") + "\n\nTotal: " + money(total) + "\n\n¿Me confirman disponibilidad y el enlace de pago?";
     var co = document.getElementById("checkout");
     co.href = cart.length ? wa(msg) : "#productos";
     co.toggleAttribute("aria-disabled", !cart.length);

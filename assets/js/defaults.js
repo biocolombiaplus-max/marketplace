@@ -9,46 +9,49 @@ window.DEFAULT_CONTENT = {
     city: "Colombia"
   },
   marquee: [
-    "Paga a cuotas con Addi y Sistecrédito",
+    "Aliado oficial Addi: usa tu cupo hoy mismo",
+    "Descuento exclusivo pagando con Addi",
     "Arma tu pedido con varios productos y págalo en una sola solicitud",
     "Asesoría por WhatsApp de lunes a sábado",
     "Sin papeleos: la aprobación la hace la plataforma en minutos",
     "Envíos a toda Colombia"
   ],
   hero: {
-    eyebrow: "Aliado de pago Addi · Sistecrédito",
+    eyebrow: "Aliado oficial Addi · Sistecrédito",
     title: "Lo que necesitas hoy,",
     highlight: "en cuotas que sí caben.",
-    subtitle: "Elige uno o varios productos, paga con tu cupo Addi o Sistecrédito y recibe en casa. Te acompañamos por WhatsApp en cada paso.",
+    subtitle: "Elige uno o varios productos, paga con tu cupo Addi o Sistecrédito y recibe en casa. Pagando con Addi tienes un descuento exclusivo.",
     ctaPrimary: "Ver productos",
     ctaSecondary: "Simular mis cuotas",
     image: ""
   },
   promo: {
-    kicker: "Atención prioritaria por WhatsApp",
-    title: "¿Tienes cupo Addi? Úsalo hoy mismo.",
-    subtitle: "Cuéntanos tu cupo disponible y te armamos un pedido a la medida, con la cuota mensual que te sirve.",
-    cta: "Quiero usar mi cupo Addi",
-    message: "Hola 👋 Tengo cupo disponible en Addi y quiero asesoría para usarlo en una compra. ¿Me ayudan?",
+    kicker: "Aliado oficial Addi",
+    title: "¿Tienes cupo Addi?",
+    highlight: "Conviértelo hoy en lo que necesitas.",
+    subtitle: "Dinos cuánto cupo tienes y en minutos te armamos un pedido a tu medida, con descuento exclusivo por pagar con Addi. Sin filas, sin papeleos.",
+    cta: "Usar mi cupo Addi ahora",
+    message: "Hola 👋 Tengo cupo disponible en Addi y quiero usarlo hoy. Mi cupo es de: ",
     image: "",
-    points: ["Respuesta por WhatsApp", "Pedido con varios productos", "Pagas en la app oficial"]
+    points: ["Aliado oficial Addi", "Descuento exclusivo con Addi", "Respuesta inmediata por WhatsApp", "Pagas en la app oficial"]
   },
   partners: [
     { name: "Addi", logo: "", note: "Compra ahora, paga después" },
     { name: "Sistecrédito", logo: "", note: "Crédito al instante" }
   ],
   simulator: {
-    title: "Simula tu compra antes de pedirla",
-    subtitle: "Mueve el valor y el plazo. Verás una cuota de referencia para planear tu presupuesto.",
+    title: "¿Cuánto cupo tienes? Mira cuánto rinde aquí",
+    subtitle: "Mueve el valor y el plazo. Verás tu ahorro pagando con Addi y una cuota de referencia para planear tu presupuesto.",
     min: 50000,
     max: 5000000,
     step: 10000,
     initial: 600000,
     plazos: [1, 3, 6, 9, 12],
     monthlyRate: 1.8,
+    addiDiscount: 5,
     note: "Valores de referencia. La aprobación, el cupo, la tasa y el plazo final los define Addi o Sistecrédito en su plataforma, según tu perfil.",
     cta: "Me interesa",
-    message: "Hola 👋 Hice la simulación en su página: compra de {monto} a {plazo} cuotas (cuota aprox. {cuota}). Quiero más información.",
+    message: "Hola 👋 Hice la simulación en su página: compra de {monto} a {plazo} cuotas (cuota aprox. {cuota}, ahorro {ahorro}). Quiero usar mi cupo.",
     image: ""
   },
   steps: [
