@@ -1,0 +1,6 @@
+data/content.json
+data/*.bak
+api/.auth.php
+uploads/*
+!uploads/.gitkeep
+!uploads/.htaccess

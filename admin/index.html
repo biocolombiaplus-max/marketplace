@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel administrativo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body>
+<section class="login" id="login" hidden>
+  <form class="login-card" id="loginForm">
+    <span class="mark">C</span>
+    <h1>Panel administrativo</h1>
+    <p>Ingresa la contraseña para editar la landing.</p>
+    <label for="pw">Contraseña</label>
+    <input id="pw" type="password" autocomplete="current-password" required>
+    <button class="btn-fire" type="submit">Entrar</button>
+    <p class="err" id="loginErr" role="alert"></p>
+  </form>
+</section>
+
+<div class="shell" id="shell" hidden>
+  <aside class="side">
+    <div class="brand"><span class="mark">C</span><b>Administrador</b></div>
+    <nav id="tabs" aria-label="Secciones"></nav>
+    <div class="side-foot">
+      <a href="../" target="_blank" rel="noopener">Ver la página ↗</a>
+      <button type="button" id="logout">Cerrar sesión</button>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div><h1 id="tabTitle"></h1><p id="tabHint"></p></div>
+      <div class="actions">
+        <button type="button" class="ghost" id="exportBtn">Exportar copia</button>
+        <label class="ghost" for="importFile">Importar copia</label>
+        <input type="file" id="importFile" accept="application/json" hidden>
+        <button type="button" class="btn-fire" id="saveBtn">Guardar cambios</button>
+      </div>
+    </header>
+    <div class="banner-warn" id="pwWarn" hidden>
+      Estás usando la contraseña inicial. <button type="button" id="openPw">Cámbiala ahora</button>
+    </div>
+    <div class="panel" id="panel"></div>
+  </main>
+</div>
+
+<dialog id="pwDialog">
+  <form method="dialog" id="pwForm">
+    <h2>Cambiar contraseña</h2>
+    <label for="pwCur">Contraseña actual</label><input id="pwCur" type="password" required>
+    <label for="pwNew">Nueva contraseña (mínimo 10 caracteres)</label><input id="pwNew" type="password" minlength="10" required>
+    <p class="err" id="pwErr" role="alert"></p>
+    <div class="row"><button type="button" class="ghost" id="pwCancel">Cancelar</button><button class="btn-fire" type="submit">Guardar contraseña</button></div>
+  </form>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="../assets/js/defaults.js"></script>
+<script src="../assets/js/admin.js"></script>
+</body>
+</html>
